@@ -3,14 +3,25 @@ import select
 from datetime import datetime
 import sys
 
-def main():
-    if len(sys.argv)!=3:
-        print("aaaa")
 
-    args = sys.argv
-    print("ok")
-    host = args[1]#ipaddress
-    port = int(args[2])#port
+def endsession(f, filename, sessionlog, sock, log):
+    f.close()
+    sessionlog.close()
+    output(log, 'Closed a file: ' ,filename)
+    sock.send(b'Closed a file: ' + filename.encode()+ b"\n")
+
+    sessionEnd_time = datetime.now()
+    output(log, 'End the Session at ', str(sessionEnd_time))
+    sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
+
+def output(f,attribute,data):
+    print(attribute + data + '\n')
+    f.write(attribute + data + '\n')
+
+def main():
+
+    host = "192.168.24.10"
+    port = 50000
     elements_number = 10
     bufsize = 1024
     writeenable = False
@@ -18,24 +29,22 @@ def main():
     readfds = set([listenserver_socket])
     msg = b''
     servstart_time = datetime.now()
-    log = open('all_'+'{0:%Y%m%d}'.format(servstart_time)+'.log', 'a')
+    log = open('data/all_'+'{0:%Y%m%d}'.format(servstart_time)+'.log', 'a')
     #定数
-    START = '#start\r\n'
-    QUIT = '#quit\r\n'
+    START = '#s\r\n'
+    QUIT = '#q\r\n'
     SIGNAL = '#signal'
 
-    print('Use IPaddress:', host)
-    print('Use Port:', port)
-    print('Starting the server at', servstart_time)
-    log.write('Starting the server at' + str(servstart_time)+'\n')
 
+    output(log,'Use IPaddress: ',host)
+    output(log, 'Use Port: ', str(port))
+    output(log, 'Starting the server at: ', str(servstart_time))
     #例外処理
     try:
         listenserver_socket.bind((host, port))
         listenserver_socket.listen(elements_number)
 
-        print('Waiting for a client to call...')
-        log.write('Waiting for a client to call...'+'\n')
+        output(log, 'Waiting for a client to call...','');
 
         while True:
             rready_socket, wready_socket, xready_socket = select.select(readfds, [], [])
@@ -46,10 +55,9 @@ def main():
                 if listenserver_socket is sock:
                     connfd, address = listenserver_socket.accept()
                     readfds.add(connfd)
-                    log.write('NewDiscriptor' + str(connfd)+'\n')
-                    print('NewDiscriptor', connfd)
+                    output(log, 'NewDiscriptor', str(connfd))
                     startconnectiontime = datetime.now()
-                    print('startconnectiontime at:', startconnectiontime)
+                    output(log, 'startconnectiontime at: ', str(startconnectiontime))
 
                 #新規でなければ
                 else:
@@ -63,34 +71,28 @@ def main():
                     if len(msg) == 0:
                         sock.close()
                         readfds.remove(sock)
-                        log.write('Disconnection' + str(connfd)+'\n')
-                        print('Disconnection ', connfd)
+                        output(log, 'Disconnection: ',str(connfd))
                         disconnectiontime = datetime.now()
-                        print('disconnectiontime at:', disconnectiontime)
+                        output(log, 'Disconnectiontime at: ', str(disconnectiontime))
                     else:
                         received_data = msg.decode('utf-8')
-                        log.write(str(receiveddata_time)+ ': ' + received_data+'\n')
-                        print("****************")
-                        print(receiveddata_time, ': ',received_data)#どのクライアントからの表示かも表示するのを追加予定
-                        print("****************")
+                        output(log, str(receiveddata_time)+ ': ', received_data)
 
                         if received_data == START:
                             if writeenable:
-                                log.write('The file is already open'+'\n')
-                                print('The file is already open')
+                                output(log, 'The file is already open','')
                                 sock.send(b'The file is already open'+ b"\n")
                                 endsession(f, filename, sessionlog, sock, log)
                             sessionStart_time = datetime.now()
-                            filename = ('{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
-                            sessionlogname = ('{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
-                            log.write('Starting the Session at ' + str(sessionStart_time))
-                            print('Starting the Session at ', sessionStart_time)
+                            filename = ('data/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
+                            sessionlogname = ('data/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
+                            output(log, 'Starting the Session at ', str(sessionStart_time))
+
                             sock.send(b'Starting the Session at ' + str(sessionStart_time).encode()+b'\n')
 
                             f = open (filename, 'a')
                             sessionlog = open (sessionlogname, 'a')
-                            log.write('Opened a new file: ' + filename+'\n')
-                            print('Opened a new file: ' + filename)
+                            output(log, 'Opened a new file: ', filename)
                             sock.send(b'Opened a new file: ' + filename.encode()+b'\n\n')
 
                             writeenable = True #書き込み可能に
@@ -116,17 +118,6 @@ def main():
         log.close()
     return
 
-def endsession(f, filename, sessionlog, sock, log):
-    f.close()
-    sessionlog.close()
-    log.write('Closed a file: ' + filename+ '\n')
-    print('Closed a file: ', filename)
-    sock.send(b'Closed a file: ' + filename.encode()+ b"\n")
-
-    sessionEnd_time = datetime.now()
-    log.write('End the Session at ' + str(sessionEnd_time))
-    print('End the Session at: ', sessionEnd_time, '\n')
-    sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
 
     #計算箇所(予定),計算の前の加工もどうするか考えないと...
 def calc():
