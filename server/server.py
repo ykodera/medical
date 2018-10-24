@@ -36,7 +36,6 @@ def main():
     servstart_time = datetime.now()
     new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
 
-    new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
     os.mkdir(new_dir_path)
 
     log = open(new_dir_path +'/all_{0:%Y%m%d_%H%M%S}'.format(servstart_time)+'.log', 'a')
