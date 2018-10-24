@@ -2,7 +2,7 @@ import socket
 import select
 from datetime import datetime
 import sys
-
+import os
 
 def endsession(f, filename, sessionlog, sock, log):
     f.close()
@@ -26,7 +26,7 @@ def main():
     SIGNAL = '#signal'
 
     host = "192.168.24.10"
-    port = 50000
+    port = 5000
     elements_number = 10
     bufsize = 1024
     writeenable = False
@@ -34,7 +34,12 @@ def main():
     readfds = set([listenserver_socket])
     msg = b''
     servstart_time = datetime.now()
-    log = open('data/all_'+'{0:%Y%m%d}'.format(servstart_time)+'.log', 'a')
+    new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
+
+    new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
+    os.mkdir(new_dir_path)
+
+    log = open(new_dir_path +'/all_{0:%Y%m%d_%H%M%S}'.format(servstart_time)+'.log', 'a')
 
 
     output(log,'Use IPaddress: ',host)
@@ -81,7 +86,7 @@ def main():
                         output(log, str(receiveddata_time)+ ': ', received_data)
 
                         print("****************")
-                        print("data: "+ msg)
+                        print(msg)
                         print("utf-data: "+ received_data)
                         print("****************")
 
@@ -91,8 +96,8 @@ def main():
                                 sock.send(b'The file is already open'+ b"\n")
                                 endsession(f, filename, sessionlog, sock, log)
                             sessionStart_time = datetime.now()
-                            filename = ('data/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
-                            sessionlogname = ('data/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
+                            filename = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
+                            sessionlogname = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
                             output(log, 'Starting the Session at ', str(sessionStart_time))
 
                             sock.send(b'Starting the Session at ' + str(sessionStart_time).encode()+b'\n')
@@ -115,15 +120,10 @@ def main():
                         elif writeenable:
                             #ここが怪しい
                             #データを走査して、改行に当たったらそこまでをwriteするように
-                            i = 0
-                            for data in received_data:
-                                i=i+1
-                                if(data == '\n'):
-                                    break
 
-                            #f.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
-                            #sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
-                            f.write((str(receiveddata_time) + ',' + received_data.rstrip('\r\n')+','+'\n'))
+                            f.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+
         f.close()
 
     finally:
