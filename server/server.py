@@ -20,6 +20,11 @@ def output(f,attribute,data):
 
 def main():
 
+    #定数
+    START = '#s\r\n'
+    QUIT = '#q\r\n'
+    SIGNAL = '#signal'
+
     host = "192.168.24.10"
     port = 50000
     elements_number = 10
@@ -30,18 +35,15 @@ def main():
     msg = b''
     servstart_time = datetime.now()
     log = open('data/all_'+'{0:%Y%m%d}'.format(servstart_time)+'.log', 'a')
-    #定数
-    START = '#s\r\n'
-    QUIT = '#q\r\n'
-    SIGNAL = '#signal'
 
 
     output(log,'Use IPaddress: ',host)
     output(log, 'Use Port: ', str(port))
     output(log, 'Starting the server at: ', str(servstart_time))
+
     #例外処理
     try:
-        listenserver_socket.bind((host, port))
+        listenserver_socket.bind((socket.gethostname(), port))
         listenserver_socket.listen(elements_number)
 
         output(log, 'Waiting for a client to call...','');
@@ -78,6 +80,11 @@ def main():
                         received_data = msg.decode('utf-8')
                         output(log, str(receiveddata_time)+ ': ', received_data)
 
+                        print("****************")
+                        print("data: "+ msg)
+                        print("utf-data: "+ received_data)
+                        print("****************")
+
                         if received_data == START:
                             if writeenable:
                                 output(log, 'The file is already open','')
@@ -108,8 +115,15 @@ def main():
                         elif writeenable:
                             #ここが怪しい
                             #データを走査して、改行に当たったらそこまでをwriteするように
-                            f.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
-                            sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            i = 0
+                            for data in received_data:
+                                i=i+1
+                                if(data == '\n'):
+                                    break
+
+                            #f.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            #sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            f.write((str(receiveddata_time) + ',' + received_data.rstrip('\r\n')+','+'\n'))
         f.close()
 
     finally:
