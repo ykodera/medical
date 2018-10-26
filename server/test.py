@@ -86,9 +86,12 @@ def main():
                         if (flag):
                             testname = (new_dir_path+'/test.csv')
                             test = open(testname, 'a')
+                            debagname = (new_dir_path+'/debag.csv')
+                            debag = open(debagname, 'at')
+
                             flag=False
                         test.write(received_data)
-                        test.write('|')
+                    #    test.write('}')
 
 
                         #output(log, str(receiveddata_time)+ ': ', received_data)
@@ -129,8 +132,14 @@ def main():
                             #ここが怪しい
                             #データを走査して、改行に当たったらそこまでをwriteするように
                             #received_data:str saved_data:配列
+                            debag.write('1saved_data >\n')
+                            debag.write(''.join(saved_data))
+
                             tail_data = ''.join(saved_data)
+                            debag.write('tail_data >\n')
+                            debag.write(tail_data)
                             received_data = tail_data + received_data
+
                             if(received_data[-1]=='\n'):
                                 sd = received_data.split('\n')
                                 k = 0
@@ -138,17 +147,16 @@ def main():
                                     print(sd[k])
                                     f.write(sd[k]+'\n')
                                     k=k+1
-                                '''
-                                print(received_data)
-                                log.write(received_data)
-                                f.write(received_data)
-                                '''
+
                                 #saved_dataを初期化
                                 saved_data=[]
                             else:
-                                print("aaaaa")
-                                f.write('|')
+                                print('aaaa')
+                                debag.write('split\n')
+                            #    f.write('>')
                                 spritdata = received_data.split('\n')
+                                debag.write(''.join(spritdata))
+
                                 i=0
                                 #最後-1の要素を取得し
                                 while(i < len(spritdata)-1):
@@ -156,14 +164,16 @@ def main():
                                     print(spritdata[i])
                                     log.write(spritdata[i]+'\n')
                                     f.write(spritdata[i]+'\n')
-
+                                    #debag.write(spritdata[i])
 #                                    print("i"+str(i))
                                     i=i+1
                                 string=spritdata[i]
+                                saved_data = []
                                 #分解
                                 for c in string:
                                     saved_data.append(c)
-
+                                debag.write("2saved_data:\n")
+                                debag.write(''.join(saved_data))
 
                                 #print(saved_data)#saved_data;str
 
@@ -176,11 +186,12 @@ def main():
                             #f.write((str(receiveddata_time) + ',' + received_data.rstrip('\r\n')+','+'\n'))
 
         f.close()
+        test.close()
+        debag.close()
 
     finally:
         for sock in readfds:
             sock.close()
-            test.close()
         log.close()
     return
 
