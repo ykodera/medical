@@ -33,7 +33,10 @@ def main():
     listenserver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     readfds = set([listenserver_socket])
     msg = b''
+    saved_data = {}
+    #nclients = 0
 
+    #debug用
     flag=True
 
     servstart_time = datetime.now()
@@ -66,12 +69,17 @@ def main():
                     output(log, 'NewDiscriptor', str(connfd))
                     startconnectiontime = datetime.now()
                     output(log, 'startconnectiontime at: ', str(startconnectiontime))
-                    saved_data=[]
-                    print("saved_data create")
+                    saved_data[connfd.fileno()]=[]
+                    #nclients=nclients+1
+                    print("create buffer")
+
                 #新規でなければ
                 else:
                     #データ受信
                     msg = sock.recv(bufsize)
+                    cfd = sock.fileno()
+                    print("cfd:")
+                    print(cfd)
                     receiveddata_time = datetime.now()
 
                     #受け取ったデータ長が0だったら
@@ -85,11 +93,9 @@ def main():
                         received_data = msg.decode('utf-8')
                         if (flag):
                             debugname = (new_dir_path+'/debug.csv')
-                            debugf = open(debugname, 'at')
+                            debugf = open(debugname, 'a')
                             flag=False
-                            print("create debugfile")
                         debugf.write(received_data)
-                    #    test.write('}')
 
                         #output(log, str(receiveddata_time)+ ': ', received_data)
                         #print("****************")
@@ -123,35 +129,23 @@ def main():
                                 writeenable = False
 
                         elif received_data == SIGNAL:
+                            #to be conntinued...
                             calc()
 
                         elif writeenable:
-                            #ここが怪しい
                             #received_data:str saved_data:配列
-
-                            tail_data = ''.join(saved_data)
+                            print("saved_data{0}".format(cfd))
+                            print(saved_data[cfd])
+                            tail_data = ''.join(saved_data[cfd])
                             received_data = tail_data + received_data
 
                             if(received_data[-1]=='\n'):
-                        #        sd = received_data.split('\n')
-
-                                k = 0
-
-                                '''
-                                while (k < len(sd)-1):
-
-                                    print(sd[k])
-                                    f.write(sd[k]+'\n')
-                                    k=k+1
-                                    '''
                                 print(received_data)
                                 f.write(received_data)
-
                                 #saved_dataを初期化
-                                saved_data=[]
+                                saved_data[cfd] = []
                             else:
                                 print('aaaa')
-                            #    f.write('>')
                                 spritdata = received_data.split('\n')
 
                                 i=0
@@ -160,14 +154,14 @@ def main():
                                     print(spritdata[i])
                                     log.write(spritdata[i]+'\n')
                                     f.write(spritdata[i]+'\n')
-#                                    print("i"+str(i))
                                     i=i+1
+
                                 string=spritdata[i]
-                                saved_data = []
+                                saved_data[cfd]=[]
 
                                 #分解
                                 for c in string:
-                                    saved_data.append(c)
+                                    saved_data[cfd].append(c)
 
 
                                 #print(saved_data)#saved_data;str
