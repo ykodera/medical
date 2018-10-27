@@ -26,22 +26,24 @@ def main():
     SIGNAL = '#signal'
 
     host = "192.168.24.10"
-    port = 5000
+    port = 50000
     elements_number = 10
     bufsize = 1024
     writeenable = False
     listenserver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     readfds = set([listenserver_socket])
     msg = b''
-    servstart_time = datetime.now()
-    new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
 
+    flag=True
+
+    servstart_time = datetime.now()
+
+    new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
     os.mkdir(new_dir_path)
 
     log = open(new_dir_path +'/all_{0:%Y%m%d_%H%M%S}'.format(servstart_time)+'.log', 'a')
 
-
-    output(log,'Use IPaddress: ',host)
+    output(log, 'Use IPaddress: ', host)
     output(log, 'Use Port: ', str(port))
     output(log, 'Starting the server at: ', str(servstart_time))
 
@@ -64,13 +66,12 @@ def main():
                     output(log, 'NewDiscriptor', str(connfd))
                     startconnectiontime = datetime.now()
                     output(log, 'startconnectiontime at: ', str(startconnectiontime))
-
+                    saved_data=[]
+                    print("saved_data create")
                 #新規でなければ
                 else:
                     #データ受信
                     msg = sock.recv(bufsize)
-                    msg.strip()
-
                     receiveddata_time = datetime.now()
 
                     #受け取ったデータ長が0だったら
@@ -82,12 +83,22 @@ def main():
                         output(log, 'Disconnectiontime at: ', str(disconnectiontime))
                     else:
                         received_data = msg.decode('utf-8')
-                        output(log, str(receiveddata_time)+ ': ', received_data)
+                        if (flag):
+                            testname = (new_dir_path+'/test.csv')
+                            test = open(testname, 'a')
+                            debagname = (new_dir_path+'/debag.csv')
+                            debag = open(debagname, 'at')
 
-                        print("****************")
-                        print(msg)
-                        print("utf-data: "+ received_data)
-                        print("****************")
+                            flag=False
+                        test.write(received_data)
+                    #    test.write('}')
+
+                        #output(log, str(receiveddata_time)+ ': ', received_data)
+                        #print("****************")
+
+                        #print(msg)
+                        #print("utf-data: "+ received_data)
+                        #print("****************")
 
                         if received_data == START:
                             if writeenable:
@@ -119,11 +130,63 @@ def main():
                         elif writeenable:
                             #ここが怪しい
                             #データを走査して、改行に当たったらそこまでをwriteするように
+                            #received_data:str saved_data:配列
+                            debag.write('1saved_data >\n')
+                            debag.write(''.join(saved_data))
 
-                            f.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
-                            sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            tail_data = ''.join(saved_data)
+                            debag.write('tail_data >\n')
+                            debag.write(tail_data)
+                            received_data = tail_data + received_data
+
+                            if(received_data[-1]=='\n'):
+                                sd = received_data.split('\n')
+                                k = 0
+                                while (k < len(sd)-1):
+                                    print(sd[k])
+                                    f.write(sd[k]+'\n')
+                                    k=k+1
+
+                                #saved_dataを初期化
+                                saved_data=[]
+                            else:
+                                print('aaaa')
+                                debag.write('split\n')
+                            #    f.write('>')
+                                spritdata = received_data.split('\n')
+                                debag.write(''.join(spritdata))
+
+                                i=0
+                                #最後-1の要素を取得し
+                                while(i < len(spritdata)-1):
+
+                                    print(spritdata[i])
+                                    log.write(spritdata[i]+'\n')
+                                    f.write(spritdata[i]+'\n')
+                                    #debag.write(spritdata[i])
+#                                    print("i"+str(i))
+                                    i=i+1
+                                string=spritdata[i]
+                                saved_data = []
+                                #分解
+                                for c in string:
+                                    saved_data.append(c)
+                                debag.write("2saved_data:\n")
+                                debag.write(''.join(saved_data))
+
+                                #print(saved_data)#saved_data;str
+
+                            #sd=received_data.split('\n')
+                            #f.write(str(receiveddata_time) + ',' + sd[0]+'\n')
+
+                            #f.write((str(receiveddata_time) + ','+ ''.join(d)+','+'\n'))
+
+                            #sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
+                            #f.write((str(receiveddata_time) + ',' + received_data.rstrip('\r\n')+','+'\n'))
 
         f.close()
+        test.close()
+        debag.close()
 
     finally:
         for sock in readfds:
