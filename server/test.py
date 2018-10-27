@@ -14,7 +14,7 @@ def endsession(f, filename, sock, log):
     output(log, 'End the Session at ', str(sessionEnd_time))
     sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
     output(log, '--------------------------------------------------------------\n--------------------------------------------------------------', '')
-    
+
 def output(f,attribute,data):
     print(attribute + data + '\n')
     f.write(attribute + data + '\n')
@@ -154,21 +154,20 @@ def main():
                                 saved_data[cfd] = []
                             else:
                                 print('aaaa')
-                                spritdata = received_data.split('\n')
+                                splitdata = received_data.split('\n')
 
                                 i=0
-                                while(i < len(spritdata)-1):
+                                while(i < len(splitdata)-1):
 
-                                    print(spritdata[i])
-                                    log.write(spritdata[i]+'\n')
+                                    print(splitdata[i])
+                                    log.write(splitdata[i]+'\n')
                                     #sessionlog.write(spritdata[i]+'\n')
-                                    f.write(spritdata[i]+'\n')
+                                    f.write(splitdata[i]+'\n')
                                     i=i+1
 
-                                string=spritdata[i]
+                                string=splitdata[i]
                                 saved_data[cfd]=[]
 
-                                #分解
                                 for c in string:
                                     saved_data[cfd].append(c)
 
