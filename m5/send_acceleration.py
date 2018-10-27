@@ -1,8 +1,5 @@
 str = '''
 import socket
-#from datetime import datetime
-from time import sleep
-
 import m5stack as m5
 from machine import I2C, Pin
 from mpu9250 import MPU9250
@@ -10,7 +7,7 @@ from mpu9250 import MPU9250
 lcd = m5.lcd
 lcd.clear()
 
-address = ('192.168.24.10', 5000)
+address = ('192.168.24.10', 50000)
 max_size = 1024
 
 #print('Starting the client at', datetime.now())
@@ -24,14 +21,13 @@ lcd.print("socketOK")
 c.connect(address)
 lcd.print("connectOK")
 while True:
-    sleep(1)
 
     a = imu.acceleration
     x = str(a[0]).encode("UTF-8")
     y = str(a[1]).encode("UTF-8")
     z = str(a[2]).encode("UTF-8")
-    c.send(x + ','+ y +','+ z+'\\n')
-
+    data = b'm5,'+b'X:'+ x + b','+ b'Y:'+ y +b','+ b'Z:'+ z+b'\\n'
+    c.send(data)
     if m5.buttonC.isPressed():
         break
 
