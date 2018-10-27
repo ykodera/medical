@@ -4,16 +4,17 @@ from datetime import datetime
 import sys
 import os
 
-def endsession(f, filename, sessionlog, sock, log):
+def endsession(f, filename, sock, log):
     f.close()
-    sessionlog.close()
+
     output(log, 'Closed a file: ' ,filename)
     sock.send(b'Closed a file: ' + filename.encode()+ b"\n")
 
     sessionEnd_time = datetime.now()
     output(log, 'End the Session at ', str(sessionEnd_time))
     sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
-
+    output(log, '--------------------------------------------------------------\n--------------------------------------------------------------', '')
+    
 def output(f,attribute,data):
     print(attribute + data + '\n')
     f.write(attribute + data + '\n')
@@ -40,7 +41,6 @@ def main():
     flag=True
 
     servstart_time = datetime.now()
-
     new_dir_path='data/{0:%Y%m%d_%H%M%S}'.format(servstart_time)
     os.mkdir(new_dir_path)
 
@@ -84,13 +84,16 @@ def main():
 
                     #受け取ったデータ長が0だったら
                     if len(msg) == 0:
-                        sock.close()
+                        del saved_data[sock.fileno()]
                         readfds.remove(sock)
+                        sock.close()
+
                         output(log, 'Disconnection: ',str(connfd))
                         disconnectiontime = datetime.now()
                         output(log, 'Disconnectiontime at: ', str(disconnectiontime))
                     else:
                         received_data = msg.decode('utf-8')
+                        #debug用
                         if (flag):
                             debugname = (new_dir_path+'/debug.csv')
                             debugf = open(debugname, 'a')
@@ -108,24 +111,26 @@ def main():
                             if writeenable:
                                 output(log, 'The file is already open','')
                                 sock.send(b'The file is already open'+ b"\n")
-                                endsession(f, filename, sessionlog, sock, log)
+                                endsession(f, filename, sock, log)
                             sessionStart_time = datetime.now()
                             filename = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
-                            sessionlogname = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
+                            #sessionlogname = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
+                            #sessionlog = open (sessionlogname, 'a')
                             output(log, 'Starting the Session at ', str(sessionStart_time))
-
+                            #output(sessionlog, 'Starting the Session at ', str(sessionStart_time))
                             sock.send(b'Starting the Session at ' + str(sessionStart_time).encode()+b'\n')
 
                             f = open (filename, 'a')
-                            sessionlog = open (sessionlogname, 'a')
                             output(log, 'Opened a new file: ', filename)
+                            #output(sessionlog, 'Opened a new file: ', filename)
+
                             sock.send(b'Opened a new file: ' + filename.encode()+b'\n\n')
 
                             writeenable = True #書き込み可能に
 
                         elif received_data == QUIT:
                             if writeenable:
-                                endsession(f, filename, sessionlog,sock, log)
+                                endsession(f, filename, sock, log)
                                 writeenable = False
 
                         elif received_data == SIGNAL:
@@ -142,6 +147,9 @@ def main():
                             if(received_data[-1]=='\n'):
                                 print(received_data)
                                 f.write(received_data)
+                                log.write(received_data)
+                                #sessionlog.write(spritdata[i]+'\n')
+
                                 #saved_dataを初期化
                                 saved_data[cfd] = []
                             else:
@@ -153,6 +161,7 @@ def main():
 
                                     print(spritdata[i])
                                     log.write(spritdata[i]+'\n')
+                                    #sessionlog.write(spritdata[i]+'\n')
                                     f.write(spritdata[i]+'\n')
                                     i=i+1
 
@@ -164,12 +173,9 @@ def main():
                                     saved_data[cfd].append(c)
 
 
-                                #print(saved_data)#saved_data;str
-
-                            #sessionlog.write((str(receiveddata_time) + ','+ received_data.rstrip('\r\n')+','+'\n'))
-                            #f.write((str(receiveddata_time) + ',' + received_data.rstrip('\r\n')+','+'\n'))
 
         f.close()
+    #    sessionlog.close()
         debugf.close()
 
 
