@@ -78,8 +78,8 @@ def main():
                     #データ受信
                     msg = sock.recv(bufsize)
                     cfd = sock.fileno()
-                    print("cfd:")
-                    print(cfd)
+                    #print("cfd:")
+                    #print(cfd)
                     receiveddata_time = datetime.now()
 
                     #受け取ったデータ長が0だったら
@@ -154,6 +154,7 @@ def main():
                                 saved_data[cfd] = []
                             else:
                                 print('aaaa')
+
                                 splitdata = received_data.split('\n')
 
                                 i=0
