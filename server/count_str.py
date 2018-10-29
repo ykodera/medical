@@ -52,3 +52,4 @@ else:
     for c in string:
         saved_data.append(c)
 print(saved_data)
+    #c.send(b'X:'+ x + b','+ b'Y:'+ y +b','+ b'Z:'+ z+b'\\n')
