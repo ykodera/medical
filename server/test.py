@@ -96,11 +96,12 @@ def main():
                         if len(msg) == 0:
                             del saved_data[sock.fileno()]
                             readfds.remove(sock)
-                            sock.close()
 
                             output(log, 'Disconnection: ',str(sock))
                             disconnectiontime = datetime.now()
                             output(log, 'Disconnectiontime at: ', str(disconnectiontime))
+                            sock.close()
+
                         else:
                             try:
                                 #received_data = msg.decode('utf-8')
