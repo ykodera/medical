@@ -12,11 +12,11 @@ def endsession(f, filename, sock, log):
 
     output(log, str(sessionEnd_time),'End the Session at ', str(sessionEnd_time))
     sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
-    output(log, '--------------------------------------------------------------\n--------------------------------------------------------------', '')
+    output(log, '--------------------------------------------------------------\n--------------------------------------------------------------', '','')
 
 def output(f,time,attribute,data):
-    print(time + attribute + data + '\n')
-    f.write(time + attribute + data + '\n')
+    print(time + ',' + attribute + data + '\n')
+    f.write(time + ',' + attribute + data + '\n')
 
 def main():
 
@@ -96,8 +96,8 @@ def main():
                             del saved_data[sock.fileno()]
                             readfds.remove(sock)
                             disconnectiontime = datetime.now()
-                            output(log, str(disconnecitontime), 'Disconnection: ',str(sock))
-                            output(log, str(disconnecitontime), 'Disconnectiontime at: ', str(disconnectiontime))
+                            output(log, str(disconnectiontime), 'Disconnection: ',str(sock))
+                            output(log, str(disconnectiontime), 'Disconnectiontime at: ', str(disconnectiontime))
                             sock.close()
                         else:
                             try:
@@ -160,7 +160,8 @@ def main():
                                     if(received_data[-1]=='\n'):
                                         print(received_data)
                                         f.write(received_data)
-                                        log.write(received_data)
+                                        output(log, str(receiveddata_time), received_data, '')
+#                                        log.write(received_data)
                                         #sessionlog.write(spritdata[i]+'\n')
 
                                         #saved_dataを初期化
@@ -173,7 +174,9 @@ def main():
                                         while(i < len(splitdata)-1):
 
                                             print(splitdata[i])
-                                            log.write(splitdata[i]+'\n')
+                                            output(log, str(receiveddata_time), splitdata[i], '')
+
+#                                            log.write(splitdata[i]+'\n')
                                             #sessionlog.write(spritdata[i]+'\n')
                                             f.write(splitdata[i]+'\n')
                                             i=i+1
