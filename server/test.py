@@ -6,18 +6,17 @@ import os
 
 def endsession(f, filename, sock, log):
     f.close()
-
-    output(log, 'Closed a file: ' ,filename)
+    sessionEnd_time = datetime.now()
+    output(log,str(sessionEnd_time), 'Closed a file: ' ,filename)
     sock.send(b'Closed a file: ' + filename.encode()+ b"\n")
 
-    sessionEnd_time = datetime.now()
-    output(log, 'End the Session at ', str(sessionEnd_time))
+    output(log, str(sessionEnd_time),'End the Session at ', str(sessionEnd_time))
     sock.send(b'End the Session at ' + str(sessionEnd_time).encode()+ b"\n\n")
     output(log, '--------------------------------------------------------------\n--------------------------------------------------------------', '')
 
-def output(f,attribute,data):
-    print(attribute + data + '\n')
-    f.write(attribute + data + '\n')
+def output(f,time,attribute,data):
+    print(time + attribute + data + '\n')
+    f.write(time + attribute + data + '\n')
 
 def main():
 
@@ -35,8 +34,8 @@ def main():
     readfds = set([listenserver_socket])
     msg = b''
     saved_data = {}
-    #nclients = 0
 
+    #nclients = 0
     #debug用
     flag=True
 
@@ -46,9 +45,9 @@ def main():
 
     log = open(new_dir_path +'/all_{0:%Y%m%d_%H%M%S}'.format(servstart_time)+'.log', 'a')
 
-    output(log, 'Use IPaddress: ', host)
-    output(log, 'Use Port: ', str(port))
-    output(log, 'Starting the server at: ', str(servstart_time))
+    output(log, str(servstart_time), 'Use IPaddress: ', host)
+    output(log, str(servstart_time), 'Use Port: ', str(port))
+    output(log, str(servstart_time), 'Starting the server at: ', str(servstart_time))
 
     #例外処理
     try:
@@ -56,11 +55,12 @@ def main():
         listenserver_socket.bind((str(host), port))
     except OSError as e:
         errortime =  datetime.now()
-        output(log, str(errortime),str(e))
+        output(log, str(errortime), str(e),'')
 
     else:
+        waittotime = datetime.now()
         listenserver_socket.listen(elements_number)
-        output(log, 'Waiting for a client to call...','');
+        output(log, str(waittotime),'Waiting for a client to call...','');
     try:
         while True:
             rready_socket, wready_socket, xready_socket = select.select(readfds, [], [])
@@ -71,12 +71,11 @@ def main():
                 if listenserver_socket is sock:
                     connfd, address = listenserver_socket.accept()
                     readfds.add(connfd)
-                    output(log, 'NewDiscriptor', str(connfd))
-                    startconnectiontime = datetime.now()
-                    output(log, 'startconnectiontime at: ', str(startconnectiontime))
+                    startconnectiontime = datetime.now()                    
+                    output(log, str(startconnectiontime), 'NewDiscriptor', str(connfd))
+                    output(log, str(startconnectiontime), 'startconnectiontime at: ', str(startconnectiontime))
                     saved_data[connfd.fileno()]=[]
                     #nclients=nclients+1
-                    print("create buffer")
 
                 #新規でなければ
                 else:
@@ -85,7 +84,7 @@ def main():
                         msg = sock.recv(bufsize)
                     except ConnectionResetError as e:
                         errortime =  datetime.now()
-                        output(log, str(errortime),str(e))
+                        output(log, str(errortime),str(e),'')
                     else:
                         cfd = sock.fileno()
                         #print("cfd:")
@@ -96,48 +95,47 @@ def main():
                         if len(msg) == 0:
                             del saved_data[sock.fileno()]
                             readfds.remove(sock)
-
-                            output(log, 'Disconnection: ',str(sock))
                             disconnectiontime = datetime.now()
-                            output(log, 'Disconnectiontime at: ', str(disconnectiontime))
+                            output(log, str(disconnecitontime), 'Disconnection: ',str(sock))
+                            output(log, str(disconnecitontime), 'Disconnectiontime at: ', str(disconnectiontime))
                             sock.close()
-
                         else:
                             try:
-                                #received_data = msg.decode('utf-8')
                                 received_data = msg.decode('ascii')
                             except UnicodeDecodeError as e:
                                 errortime =  datetime.now()
-                                output(log, str(errortime),str(e))
+                                output(log, str(errortime),str(e), '')
                             else:
                                 if (flag):
-                                    debugname = (new_dir_path+'/debug.csv')
-                                    debugf = open(debugname, 'a')
-                                    flag=False
+                                   # debugname = (new_dir_path+'/debug.csv')
+                                   # debugf = open(debugname, 'a')
+                                    #flag=False
                                 #debugf.write(str(received_data))
-                                debugf.write(received_data)
+#                                debugf.write(received_data)
 
                                 #output(log, str(receiveddata_time)+ ': ', received_data)
                                 #print("****************")
                                 #print(msg)
-                                #print("utf-data: "+ received_data)
+                                    print("utf-data: "+ received_data)
                                 #print("****************")
 
                                 if received_data == START:
                                     if writeenable:
-                                        output(log, 'The file is already open','')
+                                        message_time =  datetime.now()
+                                        output(log, str(message_time),'The file is already open','')
                                         sock.send(b'The file is already open'+ b"\n")
                                         endsession(f, filename, sock, log)
                                     sessionStart_time = datetime.now()
                                     filename = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.csv')
                                     #sessionlogname = (new_dir_path+'/{0:%Y%m%d_%H%M%S}'.format(sessionStart_time) + '.log')
                                     #sessionlog = open (sessionlogname, 'a')
-                                    output(log, 'Starting the Session at ', str(sessionStart_time))
+                                    output(log, str(sessionStart_time),'Starting the Session at ', str(sessionStart_time))
                                     #output(sessionlog, 'Starting the Session at ', str(sessionStart_time))
                                     sock.send(b'Starting the Session at ' + str(sessionStart_time).encode()+b'\n')
 
                                     f = open (filename, 'a')
-                                    output(log, 'Opened a new file: ', filename)
+                                    message_time = datetime.now()
+                                    output(log, str(message_time), 'Opened a new file: ', filename)
                                     #output(sessionlog, 'Opened a new file: ', filename)
                                     sock.send(b'Opened a new file: ' + filename.encode()+b'\n\n')
 
