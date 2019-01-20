@@ -86,7 +86,7 @@ def main():
                         #print("cfd:")
                         #print(cfd)
                         receiveddata_time = datetime.now()
-
+                        
                         #受け取ったデータ長が0だったら
                         if len(msg) == 0:
                             del saved_data[sock.fileno()]
@@ -136,9 +136,11 @@ def main():
                                     received_data = tail_data + received_data
 
                                     if(received_data[-1]=='\n'):
-                                        print(received_data)
+#                                        print(received_data)
                                         f.write(received_data)
-                                        output(log, str(receiveddata_time)+',', received_data, '')
+#                                        output(log, str(receiveddata_time)+',', received_data, '')
+                                        output(log, str(receiveddata_time)+',', str(cfd)+',', received_data)
+
                                         #log.write(received_data)
 
                                         #saved_dataを初期化
@@ -150,8 +152,10 @@ def main():
                                         i=0
                                         while(i < len(splitdata)-1):
 
-                                            print(splitdata[i])
-                                            output(log, str(receiveddata_time)+',', splitdata[i], '')
+#                                            print(splitdata[i])
+#                                            output(log, str(receiveddata_time)+',', splitdata[i], '')
+                                            output(log, str(receiveddata_time)+',', str(cfd)+',',splitdata[i])
+
                                             #log.write(splitdata[i]+'\n')
                                             f.write(splitdata[i]+'\n')
                                             i=i+1
